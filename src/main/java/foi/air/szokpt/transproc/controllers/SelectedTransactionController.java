@@ -1,6 +1,7 @@
 package foi.air.szokpt.transproc.controllers;
 
 import com.fasterxml.jackson.databind.annotation.NoClass;
+import foi.air.szokpt.transproc.dtos.SelectedTransactionDto;
 import foi.air.szokpt.transproc.dtos.requests.AddSelectedTransactionsRequest;
 import foi.air.szokpt.transproc.dtos.responses.ApiResponse;
 import foi.air.szokpt.transproc.services.SelectedTransactionsService;
@@ -11,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/selected-transactions")
@@ -25,6 +28,18 @@ public class SelectedTransactionController {
         this.authorizer = authorizer;
         this.selectedTransactionsService = selectedTransactionsService;
     }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<SelectedTransactionDto>> getSelectedTransactions(
+            @RequestHeader("Authorization") String authorizationHeader) {
+        authorizer.auhorize(authorizationHeader);
+        List<SelectedTransactionDto> transactions = selectedTransactionsService.getSelectedTransaction();
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponseUtil.successWithData(
+                        "Selected transactions successfully fetched",
+                        transactions));
+    }
+
 
     @PostMapping
     public ResponseEntity<ApiResponse<NoClass>> addSelectedTransactions(
