@@ -53,4 +53,38 @@ public class TransactionProcessingEngine {
                 .toString();
     }
 
+    private String generateTransactionRecord(Transaction transaction) {
+        String dataCaptureTransactionCode = " ";
+        String date = transaction.getTransactionTimestamp()
+                .format(DateTimeFormatter.ofPattern("ddMM"));
+        String accountDataSourceCode = " ";
+        String cardholderIdentificationCode = transaction.isPinUsed() ? "A" : "@";
+        String voidIndicator = transaction.getTrxType().equals("void") ? "V" : " ";
+        String time = transaction.getTransactionTimestamp()
+                .format(DateTimeFormatter.ofPattern("HHmm"));
+        String installmentsNumber = transaction.getInstallmentsCreditor().equals("no_installments") ?
+                "  " : String.valueOf(transaction.getInstallmentsNumber());
+        String installmentCreditor = getCreditorTypeSymbol(transaction.getInstallmentsCreditor());
+
+        return new StringBuilder()
+                .append("5", 0, 1)
+                .append("4", 0, 1)
+                .append(dataCaptureTransactionCode, 0, 1)
+                .append(transaction.getTid().getPosTid(), 0, 8)
+                .append(date, 0, 4)
+                .append(String.format("%-22s", transaction.getMaskedPan()), 0, 22)
+                .append(accountDataSourceCode, 0, 1)
+                .append(cardholderIdentificationCode, 0, 1)
+                .append(String.format("%012d", transaction.getAmount().movePointRight(2).longValue()), 0, 12)
+                .append(voidIndicator, 0, 1)
+                .append("1", 0, 1)
+                .append(String.format("%-6s", transaction.getApprovalCode()), 0, 6)
+                .append(String.format("%-4s", ""), 0, 4)
+                .append(time, 0, 4)
+                .append(installmentsNumber, 0, 2)
+                .append(installmentCreditor, 0, 1)
+                .repeat("0", 10)
+                .toString();
+    }
+
 }
