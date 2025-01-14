@@ -21,41 +21,34 @@ public class TransactionProcessing {
     @Column(name = "status", nullable = false)
     private String status;
 
-    @Column(name = "batch_header")
-    private String batchHeader;
-
-    @Column(name = "batch_trailer")
-    private String batchTrailer;
-
-
     @OneToMany(mappedBy = "transactionProcessing")
     private List<SelectedTransaction> selectedTransactions;
+
+    @OneToMany(mappedBy = "transactionProcessing", cascade = CascadeType.PERSIST)
+    private List<BatchRecord> batchRecords;
 
     public TransactionProcessing(Integer id,
                                  LocalDateTime scheduledAt,
                                  LocalDateTime processedAt,
                                  String status,
-                                 String batchHeader,
-                                 String batchTrailer,
                                  List<SelectedTransaction> selectedTransactions) {
         this.id = id;
         this.scheduledAt = scheduledAt;
         this.processedAt = processedAt;
         this.status = status;
-        this.batchHeader = batchHeader;
-        this.batchTrailer = batchTrailer;
         this.selectedTransactions = selectedTransactions;
     }
 
-    public TransactionProcessing(Integer id,
-                                 LocalDateTime scheduledAt,
-                                 String status) {
-        this.id = id;
-        this.scheduledAt = scheduledAt;
-        this.status = status;
-    }
 
     public TransactionProcessing() {
+    }
+
+    public TransactionProcessing(LocalDateTime scheduledAt,
+                                 LocalDateTime processedAt,
+                                 String status) {
+        this.scheduledAt = scheduledAt;
+        this.processedAt = processedAt;
+        this.status = status;
     }
 
     public Integer getId() {
@@ -90,27 +83,19 @@ public class TransactionProcessing {
         this.status = status;
     }
 
-    public String getBatchHeader() {
-        return batchHeader;
-    }
-
-    public void setBatchHeader(String batchHeader) {
-        this.batchHeader = batchHeader;
-    }
-
-    public String getBatchTrailer() {
-        return batchTrailer;
-    }
-
-    public void setBatchTrailer(String batchTrailer) {
-        this.batchTrailer = batchTrailer;
-    }
-
     public List<SelectedTransaction> getSelectedTransactions() {
         return selectedTransactions;
     }
 
     public void setSelectedTransactions(List<SelectedTransaction> selectedTransactions) {
         this.selectedTransactions = selectedTransactions;
+    }
+
+    public List<BatchRecord> getBatchRecords() {
+        return batchRecords;
+    }
+
+    public void setBatchRecords(List<BatchRecord> batchRecords) {
+        this.batchRecords = batchRecords;
     }
 }
