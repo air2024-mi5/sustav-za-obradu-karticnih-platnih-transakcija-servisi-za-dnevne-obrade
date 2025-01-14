@@ -34,4 +34,23 @@ public class TransactionProcessingEngine {
                 .repeat(" ", 17)
                 .toString();
     }
+
+    private String generateTerminalParameterRecord(String tid, Mid mid) {
+        return new StringBuilder()
+                .append("5", 0, 1)
+                .append("3", 0, 1)
+                .append("0", 0, 1)
+                .append(tid, 0, 8)
+                .append(String.format("%-25s", mid.getMerchant().getName()), 0, 25)
+                .append(String.format("%-13s", mid.getCity().toUpperCase()), 0, 13)
+                .append(String.format("%-2s", mid.getStateCode()), 0, 2)
+                .append(String.format("%-4s", mid.getTypeCode()), 0, 4)
+                .append(String.format("%-4s", mid.getLocationCode()), 0, 4)
+                .append(String.format("%-8s", ""), 0, 8)
+                .append(String.format("%-5s", mid.getPostalCode()), 0, 5)
+                .append(String.format("%-3s", mid.getCountryCode()), 0, 3)
+                .append(String.format("%-5s", mid.getSecurityCode()), 0, 5)
+                .toString();
+    }
+
 }
