@@ -14,6 +14,68 @@ import java.util.List;
 
 @Service
 public class TransactionProcessingEngine {
+
+    public List<BatchRecord> processTransactions(List<Transaction> transactions) {
+        List<BatchRecord> batchRecords = extractTids(transactions).stream()
+                .map(tid -> createBatchRecord(tid, transactions))
+                .toList();
+        connectBatchAndTransactionRecords(batchRecords);
+        return batchRecords;
+    }
+
+
+    private List<Tid> extractTids(List<Transaction> transactions) {
+        return transactions.stream()
+                .map(Transaction::getTid)
+                .distinct()
+                .toList();
+    }
+
+    private BatchRecord createBatchRecord(Tid tid, List<Transaction> transactions) {
+        String header = generateHeader(tid.getMid().getMerchant().getOib(), tid.getPosTid());
+        String terminalParameterRecord = generateTerminalParameterRecord(tid.getPosTid(), tid.getMid());
+
+        List<Transaction> tidTransactions = extractTidTransactions(transactions, tid);
+        List<TransactionRecord> transactionRecords = generateTransactionRecords(tidTransactions);
+        BatchSummary summary = calculateTransactionSummary(tidTransactions);
+        String trailer = generateTrailer(summary.getRecordCount(),
+                summary.getTotalAmount(),
+                summary.getCashbackTotal(),
+                summary.getBatchNetDeposit());
+        return new BatchRecord(header, terminalParameterRecord, trailer, transactionRecords);
+    }
+
+
+    private List<Transaction> extractTidTransactions(List<Transaction> transactions, Tid tid) {
+        return transactions.stream()
+                .filter(transaction -> transaction.getTid().equals(tid))
+                .toList();
+    }
+
+    private List<TransactionRecord> generateTransactionRecords(List<Transaction> transactions) {
+        return transactions.stream()
+                .map(transaction -> new TransactionRecord(generateTransactionRecord(transaction)))
+                .toList();
+    }
+
+    private BatchSummary calculateTransactionSummary(List<Transaction> transactions) {
+        int recordCount = 0;
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        BigDecimal batchNetDeposit = BigDecimal.ZERO;
+        BigDecimal cashbackTotal = BigDecimal.ZERO;
+
+        for (Transaction transaction : transactions) {
+            recordCount++;
+            totalAmount = totalAmount.add(transaction.getAmount());
+            if (!transaction.getTrxType().equals("void") &&
+                    !transaction.getTrxType().equals("refund")) {
+                batchNetDeposit = batchNetDeposit.add(transaction.getAmount());
+            }
+        }
+        return new BatchSummary(recordCount, totalAmount, batchNetDeposit, cashbackTotal);
+    }
+
+
     private String generateHeader(String merchantId, String tid) {
         String date = LocalDateTime.now()
                 .format(DateTimeFormatter.ofPattern("ddMM"));
@@ -117,6 +179,15 @@ public class TransactionProcessingEngine {
             default -> " ";
         };
     }
+
+    private void connectBatchAndTransactionRecords(List<BatchRecord> batchRecords) {
+        for (BatchRecord record : batchRecords) {
+            for (TransactionRecord transactionRecord : record.getTransactionRecords()) {
+                transactionRecord.setBatchRecord(record);
+            }
+        }
+    }
+
 
     private class BatchSummary {
         private final int recordCount;
