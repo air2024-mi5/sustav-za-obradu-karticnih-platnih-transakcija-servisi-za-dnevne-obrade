@@ -87,4 +87,64 @@ public class TransactionProcessingEngine {
                 .toString();
     }
 
+    private String generateTrailer(int transactionCount,
+                                   BigDecimal amountTotal,
+                                   BigDecimal cashbackTotal,
+                                   BigDecimal netDeposit) {
+        String date = LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern("ddMM"));
+        String fileNumber = "001";
+
+        return new StringBuilder()
+                .append("5", 0, 1)
+                .append("5", 0, 1)
+                .append("0", 0, 1)
+                .append(date, 0, 4)
+                .append("00", 0, 2)
+                .append(fileNumber, 0, 3)
+                .append(String.format("%09d", transactionCount), 0, 9)
+                .append(String.format("%016d", amountTotal.movePointRight(2).longValue()), 0, 16)
+                .append(String.format("%016d", cashbackTotal.movePointRight(2).longValue()), 0, 16)
+                .append(String.format("%016d", netDeposit.movePointRight(2).longValue()), 0, 16)
+                .repeat("0", 11)
+                .toString();
+    }
+
+    private String getCreditorTypeSymbol(String creditor) {
+        return switch (creditor) {
+            case "bank" -> "A";
+            case "merchant" -> "B";
+            default -> " ";
+        };
+    }
+
+    private class BatchSummary {
+        private final int recordCount;
+        private final BigDecimal totalAmount;
+        private final BigDecimal batchNetDeposit;
+        private final BigDecimal cashbackTotal;
+
+        public BatchSummary(int recordCount, BigDecimal totalAmount, BigDecimal batchNetDeposit, BigDecimal cashbackTotal) {
+            this.recordCount = recordCount;
+            this.totalAmount = totalAmount;
+            this.batchNetDeposit = batchNetDeposit;
+            this.cashbackTotal = cashbackTotal;
+        }
+
+        public int getRecordCount() {
+            return recordCount;
+        }
+
+        public BigDecimal getTotalAmount() {
+            return totalAmount;
+        }
+
+        public BigDecimal getBatchNetDeposit() {
+            return batchNetDeposit;
+        }
+
+        public BigDecimal getCashbackTotal() {
+            return cashbackTotal;
+        }
+    }
 }
