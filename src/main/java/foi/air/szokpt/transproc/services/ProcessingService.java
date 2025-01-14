@@ -11,6 +11,8 @@ import foi.air.szokpt.transproc.repositories.SelectedTransactionRepository;
 import foi.air.szokpt.transproc.repositories.TransactionProcessingRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,21 +43,29 @@ public class ProcessingService {
         try {
             scheduledProcessing = getScheduledProcessing();
         } catch (Exception e) {
+            sheduleNextProcessing();
             return;
         }
-        List<SelectedTransaction> selectedTransactions = selectedTransactionRepository
-                .findByTransactionProcessingId(scheduledProcessing.getId());
-        List<UUID> guids = selectedTransactions.stream()
-                .map(SelectedTransaction::getGuid)
-                .toList();
+        try {
+            List<SelectedTransaction> selectedTransactions = selectedTransactionRepository
+                    .findByTransactionProcessingId(scheduledProcessing.getId());
+            List<UUID> guids = selectedTransactions.stream()
+                    .map(SelectedTransaction::getGuid)
+                    .toList();
 
-        List<Transaction> transactions = transactionClient.fetchTransactions(guids);
-        List<BatchRecord> processedBatches = transactionProcessingEngine.processTransactions(transactions);
+            List<Transaction> transactions = transactionClient.fetchTransactions(guids);
+            List<BatchRecord> processedBatches = transactionProcessingEngine.processTransactions(transactions);
 
-        for (BatchRecord record : processedBatches) {
-            record.setTransactionProcessing(scheduledProcessing);
-            batchRecordRepository.save(record);
+            for (BatchRecord record : processedBatches) {
+                record.setTransactionProcessing(scheduledProcessing);
+                batchRecordRepository.save(record);
+            }
+        } catch (Exception e) {
+            scheduledProcessing.setStatus("FAILED");
+            transactionProcessingRepository.save(scheduledProcessing);
+
         }
+        sheduleNextProcessing();
     }
 
     private TransactionProcessing getScheduledProcessing() {
@@ -67,4 +77,13 @@ public class ProcessingService {
                                 "No scheduled processing found"));
         return scheduledProcessing;
     }
+
+    private void sheduleNextProcessing() {
+        transactionProcessingRepository.save(new TransactionProcessing(
+                null,
+                LocalDateTime.now().plusDays(1).with(LocalTime.MIDNIGHT),
+                "PENDING"
+        ));
+    }
+
 }

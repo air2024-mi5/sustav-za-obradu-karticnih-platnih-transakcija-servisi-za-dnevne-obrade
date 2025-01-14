@@ -43,11 +43,11 @@ public class TransactionProcessing {
     public TransactionProcessing() {
     }
 
-    public TransactionProcessing(LocalDateTime scheduledAt,
-                                 LocalDateTime processedAt,
+    public TransactionProcessing(Integer id,
+                                 LocalDateTime scheduledAt,
                                  String status) {
+        this.id = id;
         this.scheduledAt = scheduledAt;
-        this.processedAt = processedAt;
         this.status = status;
     }
 
