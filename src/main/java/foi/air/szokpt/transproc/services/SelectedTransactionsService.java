@@ -56,7 +56,7 @@ public class SelectedTransactionsService {
 
     private TransactionProcessing getScheduledProcessing() {
         TransactionProcessing scheduledProcessing =
-                transactionProcessingRepository.findScheduledTransactionProcessing()
+                transactionProcessingRepository.findScheduledTransactionProcessing(LocalDateTime.now().minusSeconds(5))
                         .stream().
                         findFirst().
                         orElseThrow(() -> new TransactionProcessingException(
