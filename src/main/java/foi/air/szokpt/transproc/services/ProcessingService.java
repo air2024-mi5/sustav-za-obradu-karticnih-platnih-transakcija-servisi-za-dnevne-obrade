@@ -40,6 +40,7 @@ public class ProcessingService {
 
     public void startDailyProcessing() {
         TransactionProcessing scheduledProcessing;
+
         try {
             scheduledProcessing = getScheduledProcessing();
         } catch (Exception e) {
@@ -55,12 +56,18 @@ public class ProcessingService {
 
             List<Transaction> transactions = transactionClient.fetchTransactions(guids);
             List<BatchRecord> processedBatches = transactionProcessingEngine.processTransactions(transactions);
+            transactionClient.sendProcessedTransactions(guids);
 
             for (BatchRecord record : processedBatches) {
                 record.setTransactionProcessing(scheduledProcessing);
                 batchRecordRepository.save(record);
             }
+
+            scheduledProcessing.setStatus("COMPLETED");
+            scheduledProcessing.setProcessedAt(LocalDateTime.now());
+            transactionProcessingRepository.save(scheduledProcessing);
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             scheduledProcessing.setStatus("FAILED");
             transactionProcessingRepository.save(scheduledProcessing);
 
