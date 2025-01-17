@@ -1,6 +1,5 @@
 package foi.air.szokpt.transproc.dtos.responses;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import foi.air.szokpt.transproc.models.BatchRecord;
 import jakarta.persistence.CascadeType;
@@ -11,10 +10,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class TransactionProcessingResponse {
-
-    @JsonIgnore
-    @JsonProperty("id")
-    private Integer id;
 
     @JsonProperty("status")
     private String status;
@@ -47,10 +42,6 @@ public class TransactionProcessingResponse {
     }
 
     public TransactionProcessingResponse() {
-    }
-
-    public Integer getId(){
-        return this.id;
     }
 
     public void setBatchRecords(List<BatchRecord> batchRecords){
