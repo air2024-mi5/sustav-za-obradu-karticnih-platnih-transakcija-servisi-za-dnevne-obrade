@@ -1,5 +1,6 @@
 package foi.air.szokpt.transproc.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -7,8 +8,10 @@ import java.util.List;
 @Entity
 @Table(name = "batch_records")
 public class BatchRecord {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonIgnore
     private Integer id;
 
     @Column(name = "batch_header")
@@ -20,8 +23,9 @@ public class BatchRecord {
     @Column(name = "batch_trailer")
     private String batchTrailer;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "transaction_processing_id")
+    @JsonIgnore
     private TransactionProcessing transactionProcessing;
 
 

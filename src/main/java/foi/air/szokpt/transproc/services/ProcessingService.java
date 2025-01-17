@@ -1,7 +1,6 @@
 package foi.air.szokpt.transproc.services;
 
 import foi.air.szokpt.transproc.clients.TransactionClient;
-import foi.air.szokpt.transproc.dtos.BatchRecordDto;
 import foi.air.szokpt.transproc.dtos.Transaction;
 import foi.air.szokpt.transproc.dtos.responses.TransactionProcessingResponse;
 import foi.air.szokpt.transproc.exceptions.TransactionProcessingException;
@@ -100,32 +99,27 @@ public class ProcessingService {
 
     public TransactionProcessingResponse getLastTransactionProcessing() {
         Pageable pageable = PageRequest.of(0, 1);
-        Page<TransactionProcessingResponse> page = transactionProcessingRepository.getLastProcessing(pageable);
-        List<TransactionProcessingResponse> results = page.getContent();
-
+        Page<TransactionProcessing> page = transactionProcessingRepository.getLastProcessing(pageable);
+        List<TransactionProcessing> results = page.getContent();
         if (!results.isEmpty()) {
-            TransactionProcessingResponse lastProcessing = results.getFirst();
+            TransactionProcessing transactionProcessing = results.getFirst();
+            TransactionProcessingResponse lastProcessing = new TransactionProcessingResponse(
+                    transactionProcessing.getStatus(),
+                    transactionProcessing.getScheduledAt(),
+                    transactionProcessing.getProcessedAt(),
+                    transactionProcessing.getBatchRecords(),
+                    0
+            ) {
+            };
 
-            List<BatchRecord> batchRecords = batchRecordRepository.getBatchRecordsByTransactionProcessingId(lastProcessing.getId());
-
-            List<BatchRecordDto> batchRecordDtos = batchRecords.stream()
-                    .map(br -> new BatchRecordDto(
-                            br.getBatchHeader(),
-                            br.getTerminalParameterRecord(),
-                            br.getBatchTrailer(),
-                            br.getTransactionRecords()
-                    ))
-                    .toList();
-
-            int processedTransactionsCount = batchRecordDtos.stream()
+            int processedTransactionsCount = lastProcessing.getBatchRecords().stream()
                     .mapToInt(batchRecordDto -> batchRecordDto.getTransactionRecords().size())
                     .sum();
 
-            lastProcessing.setBatchRecords(batchRecordDtos);
             lastProcessing.setProcessedTransactionsCount(processedTransactionsCount);
-
             return lastProcessing;
         }
         return null;
     }
 }
+

@@ -1,6 +1,5 @@
 package foi.air.szokpt.transproc.repositories;
 
-import foi.air.szokpt.transproc.dtos.responses.TransactionProcessingResponse;
 import foi.air.szokpt.transproc.models.TransactionProcessing;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,11 +18,10 @@ public interface TransactionProcessingRepository extends JpaRepository<Transacti
     )
     List<TransactionProcessing> findScheduledTransactionProcessing(@Param("threshold") LocalDateTime threshold);
 
-    @Query("SELECT new foi.air.szokpt.transproc.dtos.responses.TransactionProcessingResponse(" +
-            "    t.id, t.status, t.scheduledAt, t.processedAt, null, 0)" +
-            "FROM TransactionProcessing t " +
+    @Query("SELECT t FROM TransactionProcessing t " +
             "WHERE t.status = 'COMPLETED' " +
-            "ORDER BY t.processedAt DESC ")
-    Page<TransactionProcessingResponse> getLastProcessing(Pageable pageable);
+            "ORDER BY t.processedAt DESC")
+    Page<TransactionProcessing> getLastProcessing(Pageable pageable);
+
 
 }

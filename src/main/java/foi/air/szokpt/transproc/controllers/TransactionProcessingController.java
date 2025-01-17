@@ -32,7 +32,7 @@ public class TransactionProcessingController {
         TransactionProcessingResponse lastTransactionProcessing = processingService.getLastTransactionProcessing();
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponseUtil.successWithData(
-                        "Selected transactions successfully fetched",
+                        "Last processing successfully fetched",
                         lastTransactionProcessing));
     }
 }

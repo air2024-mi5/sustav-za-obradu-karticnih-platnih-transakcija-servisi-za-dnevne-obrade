@@ -1,5 +1,6 @@
 package foi.air.szokpt.transproc.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -21,10 +22,11 @@ public class TransactionProcessing {
     @Column(name = "status", nullable = false)
     private String status;
 
-    @OneToMany(mappedBy = "transactionProcessing")
+    @OneToMany(mappedBy = "transactionProcessing", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<SelectedTransaction> selectedTransactions;
 
-    @OneToMany(mappedBy = "transactionProcessing", cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "transactionProcessing", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<BatchRecord> batchRecords;
 
     public TransactionProcessing(Integer id,
