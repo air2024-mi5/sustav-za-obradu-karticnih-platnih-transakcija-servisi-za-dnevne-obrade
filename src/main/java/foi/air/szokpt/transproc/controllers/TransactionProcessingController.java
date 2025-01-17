@@ -1,7 +1,7 @@
 package foi.air.szokpt.transproc.controllers;
 
 import foi.air.szokpt.transproc.dtos.responses.ApiResponse;
-import foi.air.szokpt.transproc.dtos.responses.TransactionProcessingDto;
+import foi.air.szokpt.transproc.dtos.responses.TransactionProcessingResponse;
 import foi.air.szokpt.transproc.services.ProcessingService;
 import foi.air.szokpt.transproc.util.ApiResponseUtil;
 import foi.air.szokpt.transproc.util.Authorizer;
@@ -26,10 +26,10 @@ public class TransactionProcessingController {
     }
 
     @GetMapping("/last-processing")
-    public ResponseEntity<ApiResponse<TransactionProcessingDto>> getLastProcessing(
+    public ResponseEntity<ApiResponse<TransactionProcessingResponse>> getLastProcessing(
             @RequestHeader("Authorization") String authorizationHeader) {
         authorizer.auhorize(authorizationHeader);
-        TransactionProcessingDto lastTransactionProcessing = processingService.getLastTransactionProcessing();
+        TransactionProcessingResponse lastTransactionProcessing = processingService.getLastTransactionProcessing();
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponseUtil.successWithData(
                         "Selected transactions successfully fetched",
