@@ -79,8 +79,9 @@ public class ProcessingService {
             scheduledProcessing.setStatus("FAILED");
             transactionProcessingRepository.save(scheduledProcessing);
 
+        } finally {
+            sheduleNextProcessing();
         }
-        sheduleNextProcessing();
     }
 
     private TransactionProcessing getScheduledProcessing() {
