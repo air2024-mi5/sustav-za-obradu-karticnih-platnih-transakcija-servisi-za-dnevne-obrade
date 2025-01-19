@@ -1,7 +1,7 @@
 package foi.air.szokpt.transproc.dtos.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import foi.air.szokpt.transproc.models.BatchRecord;
+import foi.air.szokpt.transproc.dtos.BatchRecordDto;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
@@ -22,7 +22,7 @@ public class TransactionProcessingResponse {
 
     @JsonProperty("batch_records")
     @OneToMany(mappedBy = "transactionProcessing", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<BatchRecord> batchRecords;
+    private List<BatchRecordDto> batchRecords;
 
     @JsonProperty("processed_transactions_count")
     private Integer processedTransactionsCount;
@@ -31,7 +31,7 @@ public class TransactionProcessingResponse {
             String status,
             LocalDateTime scheduledAt,
             LocalDateTime processedAt,
-            List<BatchRecord> batchRecords,
+            List<BatchRecordDto> batchRecords,
             Integer processedTransactionsCount
     ) {
         this.scheduledAt = scheduledAt;
@@ -44,7 +44,7 @@ public class TransactionProcessingResponse {
     public TransactionProcessingResponse() {
     }
 
-    public void setBatchRecords(List<BatchRecord> batchRecords){
+    public void setBatchRecords(List<BatchRecordDto> batchRecords){
         this.batchRecords = batchRecords;
     }
 
@@ -52,7 +52,7 @@ public class TransactionProcessingResponse {
         this.processedTransactionsCount = count;
     }
 
-    public List<BatchRecord> getBatchRecords(){
+    public List<BatchRecordDto> getBatchRecords(){
         return this.batchRecords;
     }
 }

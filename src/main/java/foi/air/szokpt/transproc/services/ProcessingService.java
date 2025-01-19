@@ -1,12 +1,14 @@
 package foi.air.szokpt.transproc.services;
 
 import foi.air.szokpt.transproc.clients.TransactionClient;
+import foi.air.szokpt.transproc.dtos.BatchRecordDto;
 import foi.air.szokpt.transproc.dtos.Transaction;
 import foi.air.szokpt.transproc.dtos.responses.TransactionProcessingResponse;
 import foi.air.szokpt.transproc.exceptions.TransactionProcessingException;
 import foi.air.szokpt.transproc.models.BatchRecord;
 import foi.air.szokpt.transproc.models.SelectedTransaction;
 import foi.air.szokpt.transproc.models.TransactionProcessing;
+import foi.air.szokpt.transproc.models.TransactionRecord;
 import foi.air.szokpt.transproc.repositories.BatchRecordRepository;
 import foi.air.szokpt.transproc.repositories.SelectedTransactionRepository;
 import foi.air.szokpt.transproc.repositories.TransactionProcessingRepository;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -67,11 +70,12 @@ public class ProcessingService {
                 batchRecordRepository.save(record);
             }
 
+
             scheduledProcessing.setStatus("COMPLETED");
             scheduledProcessing.setProcessedAt(LocalDateTime.now());
             transactionProcessingRepository.save(scheduledProcessing);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.out.println(e);
             scheduledProcessing.setStatus("FAILED");
             transactionProcessingRepository.save(scheduledProcessing);
 
@@ -90,7 +94,7 @@ public class ProcessingService {
     }
 
     private void sheduleNextProcessing() {
-        transactionProcessingRepository.save(new TransactionProcessing(
+        transactionProcessingRepository.saveAndFlush(new TransactionProcessing(
                 null,
                 LocalDateTime.now().plusDays(1).with(LocalTime.MIDNIGHT),
                 "PENDING"
@@ -103,11 +107,12 @@ public class ProcessingService {
         List<TransactionProcessing> results = page.getContent();
         if (!results.isEmpty()) {
             TransactionProcessing transactionProcessing = results.getFirst();
+            List<BatchRecordDto> batchRecordDtos = mapToDtoList(transactionProcessing.getBatchRecords());
             TransactionProcessingResponse lastProcessing = new TransactionProcessingResponse(
                     transactionProcessing.getStatus(),
                     transactionProcessing.getScheduledAt(),
                     transactionProcessing.getProcessedAt(),
-                    transactionProcessing.getBatchRecords(),
+                    batchRecordDtos,
                     0
             ) {
             };
@@ -120,6 +125,34 @@ public class ProcessingService {
             return lastProcessing;
         }
         return null;
+    }
+
+    private static List<BatchRecordDto> mapToDtoList(List<BatchRecord> batchRecords) {
+        if (batchRecords == null) {
+            return null;
+        }
+        List<BatchRecordDto> dtos = new ArrayList<>();
+        for (BatchRecord batchRecord : batchRecords) {
+            dtos.add(mapToDto(batchRecord));
+        }
+        return dtos;
+    }
+
+    private static BatchRecordDto mapToDto(BatchRecord batchRecord) {
+        if (batchRecord == null) {
+            return null;
+        }
+
+        return new BatchRecordDto(
+                batchRecord.getBatchHeader(),
+                batchRecord.getTerminalParameterRecord(),
+                batchRecord.getBatchTrailer(),
+                batchRecord.getTransactionRecords() != null
+                        ? batchRecord.getTransactionRecords().stream()
+                        .map(TransactionRecord::getRecord)
+                        .toList()
+                        : null
+        );
     }
 }
 

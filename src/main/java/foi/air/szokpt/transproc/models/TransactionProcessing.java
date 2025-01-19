@@ -26,7 +26,7 @@ public class TransactionProcessing {
     @JsonIgnore
     private List<SelectedTransaction> selectedTransactions;
 
-    @OneToMany(mappedBy = "transactionProcessing", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "transactionProcessing")
     private List<BatchRecord> batchRecords;
 
     public TransactionProcessing(Integer id,

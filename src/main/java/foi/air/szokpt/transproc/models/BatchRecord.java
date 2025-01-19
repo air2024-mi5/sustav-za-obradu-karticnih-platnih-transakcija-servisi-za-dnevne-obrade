@@ -23,7 +23,7 @@ public class BatchRecord {
     @Column(name = "batch_trailer")
     private String batchTrailer;
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "transaction_processing_id")
     @JsonIgnore
     private TransactionProcessing transactionProcessing;
