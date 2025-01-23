@@ -1,6 +1,7 @@
 package foi.air.szokpt.transproc.controllers;
 
 import foi.air.szokpt.transproc.dtos.responses.ApiResponse;
+import foi.air.szokpt.transproc.dtos.responses.ProcessingPageData;
 import foi.air.szokpt.transproc.dtos.responses.TransactionProcessingResponse;
 import foi.air.szokpt.transproc.services.ProcessingService;
 import foi.air.szokpt.transproc.util.ApiResponseUtil;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -34,5 +36,18 @@ public class TransactionProcessingController {
                 .body(ApiResponseUtil.successWithData(
                         "Last processing successfully fetched",
                         lastTransactionProcessing));
+    }
+
+    @GetMapping("/processings")
+    public ResponseEntity<ApiResponse<ProcessingPageData>> getProcessings(
+            @RequestParam Integer page,
+            @RequestHeader("Authorization") String authorizationHeader
+            ){
+        authorizer.auhorize(authorizationHeader);
+        ProcessingPageData transactionProcessings = processingService.getTransactionProcessings(page);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponseUtil.successWithData(
+                        "Transaction processings successfully fetched",
+                        transactionProcessings));
     }
 }

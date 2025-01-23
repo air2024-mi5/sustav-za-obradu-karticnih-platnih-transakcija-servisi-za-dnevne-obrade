@@ -3,6 +3,7 @@ package foi.air.szokpt.transproc.services;
 import foi.air.szokpt.transproc.clients.TransactionClient;
 import foi.air.szokpt.transproc.dtos.BatchRecordDto;
 import foi.air.szokpt.transproc.dtos.Transaction;
+import foi.air.szokpt.transproc.dtos.responses.ProcessingPageData;
 import foi.air.szokpt.transproc.dtos.responses.TransactionProcessingResponse;
 import foi.air.szokpt.transproc.exceptions.TransactionProcessingException;
 import foi.air.szokpt.transproc.models.BatchRecord;
@@ -26,6 +27,7 @@ import java.util.UUID;
 @Service
 public class ProcessingService {
 
+    private final int pageSize = 15;
     private final TransactionClient transactionClient;
     private final TransactionProcessingRepository transactionProcessingRepository;
     private final SelectedTransactionRepository selectedTransactionRepository;
@@ -104,7 +106,7 @@ public class ProcessingService {
 
     public TransactionProcessingResponse getLastTransactionProcessing() {
         Pageable pageable = PageRequest.of(0, 1);
-        Page<TransactionProcessing> page = transactionProcessingRepository.getLastProcessing(pageable);
+        Page<TransactionProcessing> page = transactionProcessingRepository.getLastProcessings(pageable);
         List<TransactionProcessing> results = page.getContent();
         if (!results.isEmpty()) {
             TransactionProcessing transactionProcessing = results.getFirst();
@@ -154,6 +156,49 @@ public class ProcessingService {
                         .toList()
                         : null
         );
+    }
+
+    public ProcessingPageData getTransactionProcessings(int page) {
+        int pageNumber = calculatePageIndex(page, pageSize);
+        int pageIndex = pageNumber - 1;
+        Pageable pageable = PageRequest.of(pageIndex, pageSize);
+        Page<TransactionProcessing> transactionProcessingsPage = transactionProcessingRepository.getLastProcessings(pageable);
+        List<TransactionProcessing> transactionProcessings = transactionProcessingsPage.getContent();
+
+        List<TransactionProcessingResponse> transactionProcessingResponses = new ArrayList<>();
+        for(TransactionProcessing transactionProcessing : transactionProcessings ){
+            List<BatchRecordDto> batchRecordDtos = mapToDtoList(transactionProcessing.getBatchRecords());
+
+            TransactionProcessingResponse response = new TransactionProcessingResponse(
+                    transactionProcessing.getStatus(),
+                    transactionProcessing.getScheduledAt(),
+                    transactionProcessing.getProcessedAt(),
+                    batchRecordDtos,
+                    0
+            );
+
+            int processedTransactionsCount = batchRecordDtos.stream()
+                    .mapToInt(batchRecordDto -> batchRecordDto.getTransactionRecords().size())
+                    .sum();
+
+            response.setProcessedTransactionsCount(processedTransactionsCount);
+            transactionProcessingResponses.add(response);
+        }
+
+        if (pageNumber == 1 && !transactionProcessingResponses.isEmpty()) {
+            transactionProcessingResponses.removeFirst();
+        }
+
+        return new ProcessingPageData(transactionProcessingResponses,
+                transactionProcessingsPage.getNumber() + 1,
+                transactionProcessingsPage.getTotalPages()
+        );
+    }
+
+    private int calculatePageIndex(int page, int pageSize) {
+        long totalItems = transactionProcessingRepository.count();
+        int totalPages = (int) Math.ceil((double) totalItems / pageSize);
+        return Math.max(1, Math.min(page, totalPages));
     }
 }
 

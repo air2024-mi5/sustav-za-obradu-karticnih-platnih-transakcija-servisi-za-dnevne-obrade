@@ -19,9 +19,9 @@ public interface TransactionProcessingRepository extends JpaRepository<Transacti
     List<TransactionProcessing> findScheduledTransactionProcessing(@Param("threshold") LocalDateTime threshold);
 
     @Query("SELECT t FROM TransactionProcessing t " +
-            "WHERE t.status = 'COMPLETED' " +
+            "WHERE t.status = 'COMPLETED' OR t.status = 'FAILED' " +
             "ORDER BY t.processedAt DESC")
-    Page<TransactionProcessing> getLastProcessing(Pageable pageable);
+    Page<TransactionProcessing> getLastProcessings(Pageable pageable);
 
 
 }
