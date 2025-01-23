@@ -22,6 +22,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
@@ -65,7 +66,7 @@ public class ProcessingService {
 
             List<Transaction> transactions = transactionClient.fetchTransactions(guids);
             List<BatchRecord> processedBatches = transactionProcessingEngine.processTransactions(transactions);
-            transactionClient.sendProcessedTransactions(guids);
+            transactionClient.sendProcessedTransactions(guids, true);
 
             for (BatchRecord record : processedBatches) {
                 record.setTransactionProcessing(scheduledProcessing);
@@ -166,7 +167,7 @@ public class ProcessingService {
         List<TransactionProcessing> transactionProcessings = transactionProcessingsPage.getContent();
 
         List<TransactionProcessingResponse> transactionProcessingResponses = new ArrayList<>();
-        for(TransactionProcessing transactionProcessing : transactionProcessings ){
+        for (TransactionProcessing transactionProcessing : transactionProcessings) {
             List<BatchRecordDto> batchRecordDtos = mapToDtoList(transactionProcessing.getBatchRecords());
 
             TransactionProcessingResponse response = new TransactionProcessingResponse(
@@ -200,5 +201,37 @@ public class ProcessingService {
         int totalPages = (int) Math.ceil((double) totalItems / pageSize);
         return Math.max(1, Math.min(page, totalPages));
     }
+
+    public void revertLastProcessing() {
+        TransactionProcessing lastProcessing;
+        try {
+            lastProcessing = getLastCompletedProcessing();
+        } catch (NoSuchElementException e) {
+            throw new TransactionProcessingException(
+                    "No processing found");
+        }
+        lastProcessing.setStatus("REVERTED");
+        transactionProcessingRepository.save(lastProcessing);
+        List<SelectedTransaction> transactions = selectedTransactionRepository.findByTransactionProcessingId(lastProcessing.getId());
+        if (!transactions.isEmpty()) {
+            List<UUID> transactionGuids = transactions.stream()
+                    .map(SelectedTransaction::getGuid)
+                    .toList();
+            transactionClient.sendProcessedTransactions(transactionGuids, false);
+        }
+        selectedTransactionRepository.deleteByTransactionProcessingId(lastProcessing.getId());
+    }
+
+    private TransactionProcessing getLastCompletedProcessing() {
+        Pageable pageable = PageRequest.of(0, 1);
+        Page<TransactionProcessing> page = transactionProcessingRepository.getLastProcessings(pageable);
+        List<TransactionProcessing> results = page.getContent();
+        if (!results.isEmpty()) {
+            return results.getFirst();
+        } else {
+            throw new NoSuchElementException();
+        }
+    }
+
 }
 

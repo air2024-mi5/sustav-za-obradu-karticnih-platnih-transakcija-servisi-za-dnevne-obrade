@@ -9,10 +9,7 @@ import foi.air.szokpt.transproc.util.Authorizer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class TransactionProcessingController {
@@ -42,12 +39,23 @@ public class TransactionProcessingController {
     public ResponseEntity<ApiResponse<ProcessingPageData>> getProcessings(
             @RequestParam Integer page,
             @RequestHeader("Authorization") String authorizationHeader
-            ){
+    ) {
         authorizer.auhorize(authorizationHeader);
         ProcessingPageData transactionProcessings = processingService.getTransactionProcessings(page);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponseUtil.successWithData(
                         "Transaction processings successfully fetched",
                         transactionProcessings));
+    }
+
+    @PutMapping("/revert-last-processing")
+    public ResponseEntity<ApiResponse<ProcessingPageData>> revertProcessing(
+            @RequestHeader("Authorization") String authorizationHeader
+    ) {
+        authorizer.auhorize(authorizationHeader);
+        processingService.revertLastProcessing();
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponseUtil.success(
+                        "Transaction processing successfully reverted"));
     }
 }
