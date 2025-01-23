@@ -51,10 +51,10 @@ public class TransactionClient {
         }
     }
 
-    public void sendProcessedTransactions(List<UUID> transactions) {
+    public void sendProcessedTransactions(List<UUID> transactions, Boolean processed) {
         if (transactions.isEmpty())
             return;
-        String url = baseUrl + "/processed-transactions";
+        String url = baseUrl + "/processed-transactions?processed=" + processed;
         try {
             WebClient webClient = webClientBuilder.baseUrl(url).build();
             webClient.put()
