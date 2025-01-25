@@ -32,7 +32,7 @@ public class SelectedTransactionController {
     @GetMapping
     public ResponseEntity<ApiResponse<SelectedTransactionDto>> getSelectedTransactions(
             @RequestHeader("Authorization") String authorizationHeader) {
-        authorizer.auhorize(authorizationHeader);
+        authorizer.verifyToken(authorizationHeader);
         List<SelectedTransactionDto> transactions = selectedTransactionsService.getSelectedTransaction();
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponseUtil.successWithData(
@@ -45,7 +45,7 @@ public class SelectedTransactionController {
     public ResponseEntity<ApiResponse<NoClass>> addSelectedTransactions(
             @RequestBody AddSelectedTransactionsRequest body,
             @RequestHeader("Authorization") String authorizationHeader) {
-        authorizer.auhorize(authorizationHeader);
+        authorizer.verifyToken(authorizationHeader);
         selectedTransactionsService.AddSelectedTransactions(
                 body.getTransactions(),
                 JwtUtil.getUsername(authorizationHeader));

@@ -27,7 +27,7 @@ public class TransactionProcessingController {
     @GetMapping("/last-processing")
     public ResponseEntity<ApiResponse<TransactionProcessingResponse>> getLastProcessing(
             @RequestHeader("Authorization") String authorizationHeader) {
-        authorizer.auhorize(authorizationHeader);
+        authorizer.verifyToken(authorizationHeader);
         TransactionProcessingResponse lastTransactionProcessing = processingService.getLastTransactionProcessing();
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponseUtil.successWithData(
@@ -40,7 +40,7 @@ public class TransactionProcessingController {
             @RequestParam Integer page,
             @RequestHeader("Authorization") String authorizationHeader
     ) {
-        authorizer.auhorize(authorizationHeader);
+        authorizer.verifyToken(authorizationHeader);
         ProcessingPageData transactionProcessings = processingService.getTransactionProcessings(page);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponseUtil.successWithData(
@@ -52,7 +52,7 @@ public class TransactionProcessingController {
     public ResponseEntity<ApiResponse<ProcessingPageData>> revertProcessing(
             @RequestHeader("Authorization") String authorizationHeader
     ) {
-        authorizer.auhorize(authorizationHeader);
+        authorizer.verifyToken(authorizationHeader);
         processingService.revertLastProcessing();
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponseUtil.success(
