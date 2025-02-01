@@ -125,7 +125,7 @@ public class TransactionProcessingEngine {
         String time = transaction.getTransactionTimestamp()
                 .format(DateTimeFormatter.ofPattern("HHmm"));
         String installmentsNumber = transaction.getInstallmentsCreditor().equals("no_installments") ?
-                "  " : String.valueOf(transaction.getInstallmentsNumber());
+                "  " : String.format("%02d", transaction.getInstallmentsNumber());
         String installmentCreditor = getCreditorTypeSymbol(transaction.getInstallmentsCreditor());
 
         return new StringBuilder()
